@@ -14,12 +14,17 @@ console.log("app.js");
 
 const els = {
   addMovieBtn: document.getElementById("add-movie-btn"),
+  filterMovieBtn: document.getElementById("filter-movie-btn"),
   addMovieModal: document.getElementById("add-modal"),
   backdrop: document.getElementById("backdrop"),
   cancelBtn: document.getElementById("cancel-btn"),
   addMovieForm: document.getElementById("add-movie-form"),
   moviesContainer: document.getElementById("movie-list"),
   noMoviesContainer: document.getElementById("entry-text"),
+  deleteModal: document.getElementById("delete-modal"),
+  deleteModalNoBtn: document.getElementById("modal-delete-no-btn"),
+  deleteModalYesBtn: document.getElementById("modal-delete-yes-btn"),
+  filterInput: document.getElementById("filter-input"),
 };
 
 console.log("els ===", els);
@@ -28,19 +33,19 @@ let mainMoviesArr = [];
 
 //testavimui prisidedam filma is karto
 
-// addNewMovieHandler({
-//   id: generateId(),
-//   imageUrl: "https://picsum.photos/id/1003/1181/1772 ",
-//   rating: "4",
-//   title: "Bambi",
-// });
+addNewMovieHandler({
+  id: generateId(),
+  imageUrl: "https://picsum.photos/id/1003/1181/1772 ",
+  rating: "4",
+  title: "Bambi",
+});
 
-// addNewMovieHandler({
-//   id: generateId(),
-//   imageUrl: "https://picsum.photos/id/1003/1181/1772 ",
-//   rating: "5",
-//   title: "Pavadinimas",
-// });
+addNewMovieHandler({
+  id: generateId(),
+  imageUrl: "https://picsum.photos/id/1003/1181/1772 ",
+  rating: "5",
+  title: "Pavadinimas",
+});
 
 // EVENT LISTENERS ===========================================
 //============================================================
@@ -52,6 +57,21 @@ els.addMovieBtn.addEventListener("click", () => {
   //parodyti backdrop
   els.backdrop.classList.add("visible");
   //els.backdrop.style.display = "block";
+});
+
+els.filterMovieBtn.addEventListener("click", () => {
+  renderMovies();
+  let mainMoviesArrFiltered = [];
+  mainMoviesArrFiltered = mainMoviesArr.filter((obj) => {
+    if (
+      obj.title
+        .toLocaleLowerCase()
+        .includes(els.filterInput.value.toLocaleLowerCase()) === true
+    )
+      return true;
+  });
+
+  renderMovies(mainMoviesArrFiltered);
 });
 
 // paspaudimas and Backdrop isjungia Modala ir Backdrop
@@ -84,13 +104,8 @@ els.addMovieForm.addEventListener("submit", (event) => {
   }
 
   // jei viskas gerai sukuriam html vieno movie ================================================
-  //const newMovieHtmlEl = makeOneMovieHtmlEl(newMovieDetails);
   addNewMovieHandler(newMovieDetails);
-
-  // talpinam ta movie i dom
-  //   console.log("talpinam movie");
-  //   els.moviesContainer.append(newMovieHtmlEl);
-  //   // uzdarom add movie modala, kai sekmingai idedame filma
+  // uzdarom add movie modala, kai sekmingai idedame filma
   closeMovieModal();
   els.addMovieForm.reset();
 });
@@ -105,18 +120,18 @@ function addNewMovieHandler(newMovieObj) {
   renderMovies();
 }
 
-function renderMovies() {
+function renderMovies(movies = mainMoviesArr) {
   //issivalyt saraso konteineri kad nebutu duklikuojami elementai su apend
   els.moviesContainer.innerHTML = "";
   //noMoviesContainer rodyti arba ne, priklausomai nuo to ar turim nors viena movie
-  if (mainMoviesArr.length > 0) {
+  if (movies.length > 0) {
     els.noMoviesContainer.style.display = "none";
   } else {
     els.noMoviesContainer.style.display = "block";
     return;
   }
   // sukti cikla per visa mainMoviesArr. sugeneruoti naujus movies html elementus is masyvo
-  mainMoviesArr.forEach((mObj) => {
+  movies.forEach((mObj) => {
     // jei viskas gerai sukuriam html vieno movie
     const newMovieHtmlEl = makeOneMovieHtmlEl(mObj);
     // talpinam ta movie i dom
@@ -138,7 +153,7 @@ function closeMovieModal() {
  *
  */
 function makeOneMovieHtmlEl(newMovieObj) {
-  console.log("newMovieObj ===", newMovieObj);
+  //console.log("newMovieObj ===", newMovieObj);
   // isorini el sukuriam su createElement
   const liEl = document.createElement("li");
   liEl.className = "movie-element";
@@ -159,8 +174,21 @@ function makeOneMovieHtmlEl(newMovieObj) {
   liEl.insertAdjacentHTML("afterbegin", liInsideHtml);
   // console.log(liEl);
   const trashEl = liEl.querySelector(".delete");
-  trashEl.addEventListener("click", movieDeleteHandler);
+  trashEl.addEventListener("click", (event) => {
+    showDeleteModal(event);
+    //movieDeleteHandler(event);
+  });
   return liEl;
+}
+
+function showDeleteModal(ev) {
+  els.deleteModal.classList.add("visible");
+  els.deleteModal.addEventListener("click", (event) => {
+    if (event.target.id === els.deleteModalYesBtn.id) {
+      movieDeleteHandler(ev);
+      els.deleteModal.classList.remove("visible");
+    } else els.deleteModal.classList.remove("visible");
+  });
 }
 
 function movieDeleteHandler(event) {
